@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Analysis Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom, #f0f8ff, #e6f7ff);
+            color: #333;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #0073e6;
+        }
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 80%;
+            max-width: 600px;
+            height: 150px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 2px solid #0073e6;
+            border-radius: 5px;
+            font-size: 1rem;
+            resize: none;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+        #loading {
+            display: none;
+            font-size: 1.2rem;
+            color: #0073e6;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 30px;
+            color: #0073e6;
+        }
+        pre {
+            width: 80%;
+            max-width: 600px;
+            background: #f4f4f4;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Automated Code Analysis</h1>
+    <p>Enter your code snippet below:</p>
+    <textarea id="codeInput" placeholder="Paste your code here..."></textarea>
+    <br>
+    <button onclick="analyzeCode()">Analyze Code</button>
+    <h2>Code Analysis Report</h2>
+    <div id="loading">⏳ Analyzing code... Please wait.</div>
+    <pre id="reportOutput">No report generated yet.</pre>
+    <div id="errorOutput" class="error"></div>
+
+    <script>
+        async function analyzeCode() {
+            const codeInput = document.getElementById("codeInput").value.trim();
+            const reportOutput = document.getElementById("reportOutput");
+            const loadingIndicator = document.getElementById("loading");
+            const errorOutput = document.getElementById("errorOutput");
+
+            // Clear previous results
+            errorOutput.textContent = "";
+            reportOutput.textContent = "";
+            loadingIndicator.style.display = "none";
+
+            if (!codeInput) {
+                errorOutput.textContent = "❌ Error: Please enter a code snippet.";
+                return;
+            }
+
+            loadingIndicator.style.display = "block";
+
+            console.log("📤 Sending Data:", JSON.stringify({ code: codeInput }));
+
+            try {
+                const response = await fetch("http://localhost:8000", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code: codeInput })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    reportOutput.textContent = data.report;
+                    reportOutput.classList.add("success");
+                    console.log("📥 Received Response:", data);
+                } else {
+                    errorOutput.textContent = `❌ Error: ${data.error || "Unknown error occurred"}`;
+                }
+            } catch (error) {
+                errorOutput.textContent = `❌ Error: ${error.message}`;
+            } finally {
+                loadingIndicator.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
